@@ -492,7 +492,6 @@ Reddit / X / YouTube / Hacker News / Qiita / Zenn / 競合 HUD グラスエコ�
 | `piper-plus_lip-sync_live2d` | Live2D × TTS リップシンク | HUD マスコットの基盤 |
 | `godot-piper-plus` / [`uPiper`](https://github.com/ayutaz/uPiper) | Godot / Unity 統合 | ゲーム連動 TTS |
 | [`uCosyVoice`](https://github.com/ayutaz/uCosyVoice) / `uStyle-Bert-VITS2` / `uZipVoice` | 競合 TTS の Unity 実装 | 話者バリエーション |
-| `はるなさん歌声` / `はるなさん音声` | 個別学習話者データセット | 推し駆動の生活パートナー |
 | `LongCat-AudioDiT` / `MioTTS-Inference` / `faster-qwen3-tts` | 拡散モデル系 TTS の研究 | 高品質 TTS の選択肢 |
 
 #### 音声変換 / 解析
