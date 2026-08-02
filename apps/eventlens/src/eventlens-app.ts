@@ -16,7 +16,6 @@ import {
   currentItem,
   moveCursor,
   remainingCount,
-  setCursor,
   toggleVisited,
   type Itinerary,
   type ItineraryItem,
@@ -58,27 +57,12 @@ export function buildItemLabel(data: EventData, item: ItineraryItem): string {
   return `${mark}${exhibitor.booth} ${exhibitor.name}`
 }
 
-function getIncomingIndex(event: EvenHubEvent, itemCount: number): number | null {
-  const rawIndex = event.listEvent?.currentSelectItemIndex
-  const parsed = typeof rawIndex === 'number'
-    ? rawIndex
-    : typeof rawIndex === 'string'
-      ? Number.parseInt(rawIndex, 10)
-      : Number.NaN
-
-  if (Number.isFinite(parsed) && parsed >= 0 && parsed < itemCount) {
-    return parsed
-  }
-
-  return null
-}
-
 export function createEventLensController(
   options: EventLensControllerOptions,
 ): EventLensController {
   let bridge: EvenAppBridge | null = null
   let startupRendered = false
-  let eventLoopRegistered = false
+  let unsubscribeEventLoop: (() => void) | null = null
 
   function buildPreview(): GlassPreview {
     const itinerary = options.getItinerary()
@@ -128,8 +112,8 @@ export function createEventLensController(
       content: preview.heading,
       xPosition: 8,
       yPosition: 4,
-      width: 560,
-      height: 72,
+      width: 544,
+      height: 100,
       isEventCapture: 0,
     })
 
@@ -138,9 +122,9 @@ export function createEventLensController(
       containerName: 'eventlens-note',
       content: preview.note,
       xPosition: 8,
-      yPosition: 80,
-      width: 560,
-      height: 44,
+      yPosition: 108,
+      width: 544,
+      height: 40,
       isEventCapture: 0,
     })
 
@@ -149,8 +133,8 @@ export function createEventLensController(
       containerName: 'eventlens-footer',
       content: preview.footer,
       xPosition: 8,
-      yPosition: 128,
-      width: 560,
+      yPosition: 152,
+      width: 544,
       height: 40,
       isEventCapture: 0,
     })
@@ -160,15 +144,15 @@ export function createEventLensController(
       containerName: 'eventlens-items',
       itemContainer: new ListItemContainerProperty({
         itemCount: Math.max(1, preview.itemLabels.length),
-        itemWidth: 560,
+        itemWidth: 544,
         isItemSelectBorderEn: 1,
         itemName: preview.itemLabels.length > 0 ? preview.itemLabels : ['（未登録）'],
       }),
       isEventCapture: 1,
       xPosition: 8,
-      yPosition: 172,
-      width: 560,
-      height: 94,
+      yPosition: 196,
+      width: 544,
+      height: 70,
     })
 
     return {
@@ -217,12 +201,9 @@ export function createEventLensController(
       return
     }
 
-    const incomingIndex = getIncomingIndex(event, itinerary.items.length)
     let next = itinerary
 
-    if (incomingIndex !== null) {
-      next = setCursor(itinerary, incomingIndex)
-    } else if (eventType === OsEventTypeList.SCROLL_TOP_EVENT) {
+    if (eventType === OsEventTypeList.SCROLL_TOP_EVENT) {
       next = moveCursor(itinerary, -1)
     } else if (eventType === OsEventTypeList.SCROLL_BOTTOM_EVENT) {
       next = moveCursor(itinerary, 1)
@@ -236,16 +217,17 @@ export function createEventLensController(
   }
 
   function registerEventLoop(nextBridge: EvenAppBridge): void {
-    if (eventLoopRegistered) return
+    if (unsubscribeEventLoop) {
+      unsubscribeEventLoop()
+      unsubscribeEventLoop = null
+    }
 
-    nextBridge.onEvenHubEvent((event) => {
+    unsubscribeEventLoop = nextBridge.onEvenHubEvent((event) => {
       void handleHubEvent(event).catch((error) => {
         console.error('[eventlens] event handling failed', error)
         options.onLog(`G2イベント処理エラー: ${String(error)}`)
       })
     })
-
-    eventLoopRegistered = true
   }
 
   return {
@@ -261,7 +243,6 @@ export function createEventLensController(
 
         if (isNewBridge) {
           startupRendered = false
-          eventLoopRegistered = false
         }
 
         registerEventLoop(nextBridge)
@@ -272,7 +253,10 @@ export function createEventLensController(
       } catch (error) {
         bridge = null
         startupRendered = false
-        eventLoopRegistered = false
+        if (unsubscribeEventLoop) {
+          unsubscribeEventLoop()
+          unsubscribeEventLoop = null
+        }
         options.onPhase('mock')
         options.onStatus('G2未接続のため、ブラウザプレビューで動作しています。')
         options.onLog(`G2未接続: ${String(error)}`)
