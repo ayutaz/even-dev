@@ -107,19 +107,25 @@ Even G2 を所有する来場者。ただし来場者 3,000 人に占める G2 �
 
 ```
 apps/eventlens/
-  app.json / index.html / package.json / vite.config.ts / README.md
-  public/exhibitors.json      同梱する出展者データ
+  app.json / index.html / package.json / README.md
+  vite.config.ts / vitest.config.ts / tsconfig.json
   src/
+    exhibitors-data.json  同梱する出展者データ（import してバンドルに含める）
     main.ts             スマートフォン側 UI（一覧・選択・並べ替え・メモ）
     eventlens-app.ts    G2 コントローラ（SDK 描画とイベント処理）
     itinerary.ts        純粋ロジック：巡回リスト・訪問済み・カーソル
-    exhibitors.ts       純粋ロジック：データ読込・版数マージ・ソート
+    exhibitors.ts       純粋ロジック：データ正規化・版数マージ・ソート
+    remote.ts           純粋ロジック：更新取得（タイムアウト付き、例外を投げない）
     storage.ts          localStorage 入出力
     styles.css
-    itinerary.test.ts / exhibitors.test.ts
+    exhibitors.test.ts / itinerary.test.ts / storage.test.ts / remote.test.ts
 ```
 
-`apps/garbage_cue` の 3 層構成（UI / G2 コントローラ / 純粋ロジック）を踏襲しつつ、テスト対象になる純粋ロジックを `itinerary` と `exhibitors` に分離する。
+`apps/garbage_cue` の 3 層構成（UI / G2 コントローラ / 純粋ロジック）を踏襲しつつ、テスト対象になる純粋ロジックを `exhibitors` `itinerary` `storage` `remote` に分離する。
+
+同梱データを `public/` ではなく `src/` に置き、`fetch` ではなく `import` で読み込む。実装中に、`public/` 方式では**シミュレータ経由で起動したときに 404 になる**ことが判明したためである。スタンドアロンの開発サーバは `root` が `apps/eventlens` なので `public/` を配信するが、`start-even.sh` が使うルートの開発サーバは `root` がリポジトリルートであり、`apps/eventlens/public/` を publicDir として扱わない。`import` にすれば Vite がバンドルへ取り込むため、起動方法にも配信構成にも依存しなくなる。
+
+なお `tsconfig.json` はこのアプリにのみ置く。リポジトリには従来 `tsconfig.json` が 1 つも存在せず、`npx tsc --noEmit` が対象ファイルを 1 つも拾わない状態だったため、型チェックが実質機能していなかった。
 
 ### 10.2 データモデル
 
@@ -137,7 +143,7 @@ type SavedState = { eventId: string; items: ItineraryItem[]; cursor: number }
 
 ### 10.3 データフロー
 
-1. 起動時に同梱の `exhibitors.json` を読む。
+1. 起動時に同梱データ（`src/exhibitors-data.json`）を `import` で読む。ネットワークも開発サーバの配信構成も介さないため、この段階で失敗する経路がない。
 2. `localStorage` に保存済みの更新データがあれば `version` を比較し、新しい方を採用する。
 3. 公式 URL からの更新取得をタイムアウト付きで試行する。失敗は無視して続行する（オフライン要件）。
 4. 巡回リストを復元し、`exhibitorId` で出展者を解決する。

@@ -10,6 +10,14 @@
 
 設計: [docs/superpowers/specs/2026-08-02-eventlens-design.md](../specs/2026-08-02-eventlens-design.md)
 
+## 実装中に確定した変更（この計画本文との差分）
+
+実装は完了しており、以下の 3 点は**このドキュメント本文のコード例より実際のコードが正しい**。各タスクのコードブロックは当時の指示内容として残してある。
+
+1. **`compareBooth`（Task 2）** — 本文の実装は、接頭辞の比較を数字の有無より先に行うため「数字を含まないブース名を後ろに置く」規則が接頭辞の異なる組で成立しなかった（`compareBooth('AA', 'Z-1')` が負を返す）。実際のコードは数字の有無を先に判定し、回帰テスト 3 件を追加してある。
+2. **`tsconfig.json` と `@types/node`（Task 1 のファイル一覧に無かったもの）** — リポジトリに `tsconfig.json` が 1 つも存在せず、検証手順の `npx tsc --noEmit` が対象ファイルを 1 つも拾っていなかった。`apps/eventlens` にのみ追加し、型チェックが実際に機能することを確認済み（意図的な型エラーが検出されることを実証）。`_shared/standalone-vite.ts` が `node:path` / `node:url` を使うため `@types/node` を devDependencies に追加した。
+3. **同梱データの配置（Task 7）** — 本文は `public/exhibitors.json` を `fetch` する構成だが、これはシミュレータ経由（`start-even.sh` が使うルートの開発サーバ、ポート 5173）で **404 になる**。ルートの開発サーバは `root` がリポジトリルートであり、`apps/eventlens/public/` を publicDir として扱わないためである。実際のコードは `src/exhibitors-data.json` を `import` しており、`BUNDLED_DATA_URL` と `loadBundledData()` は存在しない。あわせてサンプルデータを架空の 24 件に拡充し、出展者一覧の 50 件表示上限に告知を追加した。
+
 ## Global Constraints
 
 - アプリのディレクトリは `apps/eventlens/`。リポジトリ規約どおりに作れば `start-even.sh` が自動検出するため、ランチャー側の変更は一切しない。
@@ -35,8 +43,9 @@
 | `apps/eventlens/package.json` | 依存とスクリプト（dev / build / test） |
 | `apps/eventlens/vite.config.ts` | スタンドアロン Vite 設定（ポート 5180） |
 | `apps/eventlens/vitest.config.ts` | Vitest 設定 |
+| `apps/eventlens/tsconfig.json` | 型チェック設定（実装中に追加） |
 | `apps/eventlens/README.md` | 使い方と初版の範囲 |
-| `apps/eventlens/public/exhibitors.json` | 同梱する出展者データ |
+| `apps/eventlens/src/exhibitors-data.json` | 同梱する出展者データ（`import` でバンドルに含める） |
 | `apps/eventlens/src/exhibitors.ts` | 出展者データの型・正規化・ブース番号の自然順比較・版数マージ |
 | `apps/eventlens/src/itinerary.ts` | 巡回リストの追加・削除・メモ・訪問済み・カーソル・残り件数・並べ替え |
 | `apps/eventlens/src/storage.ts` | `localStorage` の読み書きと破損時のフォールバック |
@@ -2178,7 +2187,7 @@ git commit -m "docs(eventlens): add app README and register in root app list"
 
 次の 2 つは主催側で用意が必要なもので、コードの完成とは独立している。
 
-1. **出展者データの確定と差し替え** — `public/exhibitors.json` を実データに更新し、`version` を上げる。同じ JSON を `https://www.genai-expo.com/eventlens/exhibitors.json`（`main.ts` の `REMOTE_DATA_URL`）に配置すると、公開後のデータ更新が審査を経ずに反映できる。URL を変える場合は `REMOTE_DATA_URL` の定数を修正する。
+1. **出展者データの確定と差し替え** — `src/exhibitors-data.json` を実データに更新し、`version` を上げる。現在は架空のサンプル 24 件が入っている。このデータはビルド時にバンドルへ取り込まれるため、差し替えには再ビルド（公開済みなら再提出）が必要である。あわせて同じ JSON を `https://www.genai-expo.com/eventlens/exhibitors.json`（`main.ts` の `REMOTE_DATA_URL`）に配置しておくと、通信できる端末は起動時に新しい `version` を取得でき、再提出なしでデータを更新できる。URL を変える場合は `REMOTE_DATA_URL` の定数を修正する。
 2. **プライバシーポリシーの掲示** — Even Hub の公開審査に必要。「巡回リスト・メモ・訪問済み状態は端末内にのみ保存し、外部送信しない。出展者データの取得のみ通信を行う」という内容で足りる。
 
 審査提出は Task 8 で生成した `out.ehpk` を使う。目標日は設計ドキュメントのとおり 2026-09-01。
