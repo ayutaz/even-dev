@@ -3,6 +3,8 @@
 **.DS_Store
 
 dist/
+apps/*/dist/
+apps/*/out.ehpk
 .apps-cache/
 
 # Plugin symlinks
