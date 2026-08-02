@@ -1,0 +1,11 @@
+{
+  "package_id": "com.yuta.eventlens",
+  "edition": "202601",
+  "name": "EventLens",
+  "version": "0.1.0",
+  "min_app_version": "0.1.0",
+  "tagline": "次に行くブースを一目で確認",
+  "description": "展示会の巡回リストを事前に登録して、次に行くブースと残り件数をEven G2で確認するアプリです。",
+  "author": "yuta",
+  "entrypoint": "index.html"
+}
