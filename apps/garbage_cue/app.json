@@ -1,0 +1,11 @@
+{
+  "package_id": "com.yuta.garbagecue",
+  "edition": "202601",
+  "name": "GarbageCue",
+  "version": "0.1.0",
+  "min_app_version": "0.1.0",
+  "tagline": "今日出すごみを一目で確認",
+  "description": "地域の収集曜日を登録して、今日出すごみと次回の収集予定をEven G2で確認するアプリです。",
+  "author": "yuta",
+  "entrypoint": "index.html"
+}
