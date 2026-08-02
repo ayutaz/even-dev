@@ -12,7 +12,7 @@
   "permissions": [
     {
       "name": "network",
-      "desc": "Fetch exhibitor data from the event website"
+      "desc": "Fetches the public exhibitor list from www.genai-expo.com at startup. No user data is transmitted; itineraries and notes stay on the device."
     }
   ],
   "supported_languages": [
