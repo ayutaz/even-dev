@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest'
 import {
   compareBooth,
   createEmptyEventData,
+  displayColumns,
   findExhibitor,
   mergeEventData,
   normalizeEventData,
   sortExhibitorsByBooth,
+  truncateToColumns,
   type EventData,
 } from './exhibitors'
 
@@ -171,5 +173,92 @@ describe('createEmptyEventData', () => {
     const empty = createEmptyEventData()
     expect(empty.exhibitors).toEqual([])
     expect(empty.version).toBe(0)
+  })
+})
+
+describe('displayColumns', () => {
+  it('ASCII文字は1カラムとして数える', () => {
+    expect(displayColumns('Hello')).toBe(5)
+  })
+
+  it('全角の日本語文字は2カラムとして数える', () => {
+    expect(displayColumns('こんにちは')).toBe(10)
+  })
+
+  it('ASCIIと日本語が混在する文字列を正しく数える', () => {
+    expect(displayColumns('AI研究所')).toBe(8)
+  })
+
+  it('空文字は0', () => {
+    expect(displayColumns('')).toBe(0)
+  })
+
+  it('省略記号（…）は2カラムとして数える', () => {
+    expect(displayColumns('…')).toBe(2)
+  })
+})
+
+describe('truncateToColumns', () => {
+  it('予算内に収まる文字列はそのまま返す（同一の値）', () => {
+    const text = 'Hello World'
+    expect(truncateToColumns(text, 20)).toBe(text)
+  })
+
+  it('境界ちょうどの長さは切り詰めない', () => {
+    const text = 'ABCDE'
+    expect(displayColumns(text)).toBe(5)
+    expect(truncateToColumns(text, 5)).toBe(text)
+  })
+
+  it('境界を1カラム超えると切り詰められる', () => {
+    const result = truncateToColumns('ABCDEF', 5)
+    expect(result).toBe('ABC…')
+    expect(displayColumns(result)).toBeLessThanOrEqual(5)
+  })
+
+  it('ASCIIのみの文字列を切り詰める', () => {
+    const result = truncateToColumns('Hello World', 7)
+    expect(result).toBe('Hello…')
+    expect(displayColumns(result)).toBeLessThanOrEqual(7)
+  })
+
+  it('日本語のみの文字列を切り詰める', () => {
+    const result = truncateToColumns('こんにちは', 6)
+    expect(result).toBe('こん…')
+    expect(displayColumns(result)).toBeLessThanOrEqual(6)
+  })
+
+  it('ASCIIと日本語が混在する文字列を切り詰める', () => {
+    const result = truncateToColumns('AI研究所オフィス', 8)
+    expect(displayColumns(result)).toBeLessThanOrEqual(8)
+    expect(result.endsWith('…')).toBe(true)
+  })
+
+  it('全角文字が境界をまたぐ場合は文字を割らず手前で切る', () => {
+    // budget = maxColumns(5) - ellipsis(2) = 3。"AB"で2消費した時点で残り1、
+    // 次の全角「字」は2カラム必要なため入らず、割らずに丸ごと除外される。
+    const result = truncateToColumns('AB字XY', 5)
+    expect(result).toBe('AB…')
+    expect(displayColumns(result)).toBeLessThanOrEqual(5)
+  })
+
+  it('空文字はそのまま返す', () => {
+    expect(truncateToColumns('', 5)).toBe('')
+  })
+
+  it('maxColumns が省略記号より小さい場合でも安全に処理する（例: 1）', () => {
+    const result = truncateToColumns('こんにちは', 1)
+    expect(displayColumns(result)).toBeLessThanOrEqual(1)
+  })
+
+  it('maxColumns がちょうど省略記号の幅の場合は省略記号のみを返す（例: 2）', () => {
+    const result = truncateToColumns('Hello World', 2)
+    expect(result).toBe('…')
+    expect(displayColumns(result)).toBeLessThanOrEqual(2)
+  })
+
+  it('maxColumns が0以下なら空文字を返す', () => {
+    expect(truncateToColumns('Hello', 0)).toBe('')
+    expect(truncateToColumns('Hello', -1)).toBe('')
   })
 })

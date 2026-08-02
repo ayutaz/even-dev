@@ -11,7 +11,7 @@ import {
 } from '@evenrealities/even_hub_sdk'
 import { withTimeout } from '../../_shared/async'
 import { getRawEventType, normalizeEventType } from '../../_shared/even-events'
-import { findExhibitor, type EventData } from './exhibitors'
+import { findExhibitor, truncateToColumns, type EventData } from './exhibitors'
 import {
   currentItem,
   moveCursor,
@@ -20,6 +20,11 @@ import {
   type Itinerary,
   type ItineraryItem,
 } from './itinerary'
+
+// Device text metrics (apps/restapi/src/restapi-app.ts): ~36.9 columns per
+// 544px line, ~24.75-31px per line. Both budgets below stay under that with margin.
+const HEADING_NAME_MAX_COLUMNS = 72 // 2 lines x 36 columns (heading is booth + name)
+const ITEM_LABEL_MAX_COLUMNS = 36 // single list row, includes the "✓ " mark
 
 export type EventLensPhase = 'idle' | 'connecting' | 'connected' | 'mock' | 'error'
 
@@ -51,10 +56,10 @@ export function buildItemLabel(data: EventData, item: ItineraryItem): string {
   const mark = item.visited ? '✓ ' : ''
 
   if (!exhibitor) {
-    return `${mark}（掲載終了）`
+    return truncateToColumns(`${mark}（掲載終了）`, ITEM_LABEL_MAX_COLUMNS)
   }
 
-  return `${mark}${exhibitor.booth} ${exhibitor.name}`
+  return truncateToColumns(`${mark}${exhibitor.booth} ${exhibitor.name}`, ITEM_LABEL_MAX_COLUMNS)
 }
 
 export function createEventLensController(
@@ -81,7 +86,7 @@ export function createEventLensController(
 
     const exhibitor = findExhibitor(data, item.exhibitorId)
     const heading = exhibitor
-      ? `${exhibitor.booth}\n${exhibitor.name}`
+      ? `${exhibitor.booth}\n${truncateToColumns(exhibitor.name, HEADING_NAME_MAX_COLUMNS)}`
       : '（掲載終了）\nこの出展は一覧にありません'
 
     const position = `${itinerary.cursor + 1}/${itinerary.items.length}`

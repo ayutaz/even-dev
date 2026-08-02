@@ -130,3 +130,61 @@ export function mergeEventData(current: EventData, incoming: EventData | null): 
 export function findExhibitor(data: EventData, exhibitorId: string): Exhibitor | null {
   return data.exhibitors.find((exhibitor) => exhibitor.id === exhibitorId) ?? null
 }
+
+const ELLIPSIS = '…'
+
+// East Asian Wide / Fullwidth code point ranges (Unicode UAX #11). Characters
+// in these ranges render as two columns on the glasses' fixed-width display;
+// everything else (ASCII, Latin, most punctuation) renders as one.
+const WIDE_RANGES: ReadonlyArray<readonly [number, number]> = [
+  [0x1100, 0x115f], // Hangul Jamo
+  [0x2e80, 0x303e], // CJK Radicals Supplement .. CJK Symbols and Punctuation
+  [0x3041, 0x33ff], // Hiragana .. CJK Compatibility
+  [0x3400, 0x4dbf], // CJK Unified Ideographs Extension A
+  [0x4e00, 0x9fff], // CJK Unified Ideographs
+  [0xa000, 0xa4cf], // Yi Syllables
+  [0xac00, 0xd7a3], // Hangul Syllables
+  [0xf900, 0xfaff], // CJK Compatibility Ideographs
+  [0xfe30, 0xfe4f], // CJK Compatibility Forms
+  [0xff00, 0xff60], // Fullwidth Forms
+  [0xffe0, 0xffe6], // Fullwidth Signs
+  [0x20000, 0x2fffd], // CJK Unified Ideographs Extension B and beyond
+  [0x30000, 0x3fffd],
+]
+
+function isWideCodePoint(codePoint: number): boolean {
+  // U+2026 (horizontal ellipsis, …) sits outside the CJK blocks above but
+  // renders fullwidth in this app's Japanese UI, so it is special-cased.
+  if (codePoint === 0x2026) return true
+  return WIDE_RANGES.some(([start, end]) => codePoint >= start && codePoint <= end)
+}
+
+export function displayColumns(text: string): number {
+  let columns = 0
+  for (const char of text) {
+    columns += isWideCodePoint(char.codePointAt(0) ?? 0) ? 2 : 1
+  }
+  return columns
+}
+
+const ELLIPSIS_COLUMNS = displayColumns(ELLIPSIS)
+
+export function truncateToColumns(text: string, maxColumns: number): string {
+  if (displayColumns(text) <= maxColumns) return text
+  if (maxColumns <= 0) return ''
+
+  const hasRoomForEllipsis = maxColumns >= ELLIPSIS_COLUMNS
+  const budget = hasRoomForEllipsis ? maxColumns - ELLIPSIS_COLUMNS : maxColumns
+
+  let result = ''
+  let used = 0
+
+  for (const char of text) {
+    const width = displayColumns(char)
+    if (used + width > budget) break
+    result += char
+    used += width
+  }
+
+  return hasRoomForEllipsis ? result + ELLIPSIS : result
+}
