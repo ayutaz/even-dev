@@ -1,0 +1,11 @@
+{
+  "package_id": "com.ayutaz.evendev.helloworld",
+  "edition": "202601",
+  "name": "Hello World",
+  "version": "0.1.0",
+  "min_app_version": "0.1.0",
+  "tagline": "Minimal Hello World app for Even G2.",
+  "description": "Minimal standalone Hello World app for Even G2 learning.",
+  "author": "ayutaz",
+  "entrypoint": "index.html"
+}
