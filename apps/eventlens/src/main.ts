@@ -1,5 +1,6 @@
 import './styles.css'
 import { createAutoConnector } from '../../_shared/autoconnect'
+import bundledData from './exhibitors-data.json'
 import {
   createEventLensController,
   type EventLensPhase,
@@ -30,7 +31,6 @@ import {
   saveItinerary,
 } from './storage'
 
-const BUNDLED_DATA_URL = '/exhibitors.json'
 const REMOTE_DATA_URL = 'https://www.genai-expo.com/eventlens/exhibitors.json'
 
 const app = document.querySelector<HTMLDivElement>('#app')
@@ -193,18 +193,24 @@ function matchesQuery(exhibitor: Exhibitor, query: string): boolean {
   return haystack.includes(query.toLowerCase())
 }
 
+const EXHIBITOR_DISPLAY_CAP = 50
+
 function renderExhibitors(): void {
   const query = searchInput.value.trim()
-  const matched = sortExhibitorsByBooth(eventData.exhibitors)
+  const filtered = sortExhibitorsByBooth(eventData.exhibitors)
     .filter((exhibitor) => matchesQuery(exhibitor, query))
-    .slice(0, 50)
+  const matched = filtered.slice(0, EXHIBITOR_DISPLAY_CAP)
 
   if (matched.length === 0) {
     exhibitorListEl.innerHTML = '<p class="note-text">該当する出展がありません。</p>'
     return
   }
 
-  exhibitorListEl.innerHTML = matched.map((exhibitor) => {
+  const capNotice = filtered.length > EXHIBITOR_DISPLAY_CAP
+    ? `<p class="note-text">該当 ${escapeHtml(String(filtered.length))} 件のうち ${escapeHtml(String(matched.length))} 件を表示しています。検索で絞り込んでください。</p>`
+    : ''
+
+  exhibitorListEl.innerHTML = capNotice + matched.map((exhibitor) => {
     const added = hasItem(itinerary, exhibitor.id)
     return `
       <div class="schedule-row">
@@ -303,18 +309,8 @@ syncBtn.addEventListener('click', () => {
   void controller.sync()
 })
 
-async function loadBundledData(): Promise<EventData> {
-  try {
-    const response = await fetch(BUNDLED_DATA_URL)
-    if (!response.ok) return createEmptyEventData()
-    return normalizeEventData(await response.json()) ?? createEmptyEventData()
-  } catch {
-    return createEmptyEventData()
-  }
-}
-
 async function bootstrap(): Promise<void> {
-  eventData = await loadBundledData()
+  eventData = normalizeEventData(bundledData) ?? createEmptyEventData()
 
   const cached = loadCachedEventData(window.localStorage)
   if (cached && cached.eventId === eventData.eventId && cached.version > eventData.version) {

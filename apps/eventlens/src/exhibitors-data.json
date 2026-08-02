@@ -1,0 +1,32 @@
+{
+  "eventId": "genai-expo-vol6",
+  "eventName": "生成AIなんでも展示会 Vol.6",
+  "eventDate": "2026-09-23",
+  "version": 2,
+  "exhibitors": [
+    { "id": "genai-vol6-001", "booth": "A-2", "name": "サンプル出展A", "genre": "AIキャラクター" },
+    { "id": "genai-vol6-002", "booth": "A-5", "name": "サンプル出展B", "genre": "音声AI" },
+    { "id": "genai-vol6-003", "booth": "A-9", "name": "サンプル出展C", "genre": "動画生成" },
+    { "id": "genai-vol6-004", "booth": "A-12", "name": "サンプル出展D(会場内で最も文字数が多い、とても長いダミー展示名のサンプルです)", "genre": "AIイラスト" },
+    { "id": "genai-vol6-005", "booth": "A-18", "name": "サンプル出展E", "genre": "AIゲーム" },
+    { "id": "genai-vol6-006", "booth": "A-23", "name": "サンプル出展F", "genre": "ロボティクス" },
+    { "id": "genai-vol6-007", "booth": "B-3", "name": "サンプル出展G", "genre": "LLMアプリ" },
+    { "id": "genai-vol6-008", "booth": "B-8", "name": "サンプル出展H", "genre": "AI音楽" },
+    { "id": "genai-vol6-009", "booth": "B-14", "name": "サンプル出展I", "genre": "エージェント" },
+    { "id": "genai-vol6-010", "booth": "B-21", "name": "サンプル出展J(長い展示名がレイアウトにどう影響するか確認するための架空データ)", "genre": "ハードウェア" },
+    { "id": "genai-vol6-011", "booth": "B-27", "name": "サンプル出展K", "genre": "VR/AR" },
+    { "id": "genai-vol6-012", "booth": "C-1", "name": "サンプル出展L", "genre": "AIキャラクター" },
+    { "id": "genai-vol6-013", "booth": "C-6", "name": "サンプル出展M", "genre": "音声AI" },
+    { "id": "genai-vol6-014", "booth": "C-11", "name": "サンプル出展N", "genre": "動画生成" },
+    { "id": "genai-vol6-015", "booth": "C-19", "name": "サンプル出展O", "genre": "AIイラスト" },
+    { "id": "genai-vol6-016", "booth": "C-25", "name": "サンプル出展P(架空のゲーム系ダミー展示・文字数確認用の長いサンプル名称)", "genre": "AIゲーム" },
+    { "id": "genai-vol6-017", "booth": "D-4", "name": "サンプル出展Q", "genre": "ロボティクス" },
+    { "id": "genai-vol6-018", "booth": "D-10", "name": "サンプル出展R", "genre": "LLMアプリ" },
+    { "id": "genai-vol6-019", "booth": "D-16", "name": "サンプル出展S", "genre": "AI音楽" },
+    { "id": "genai-vol6-020", "booth": "D-22", "name": "サンプル出展T", "genre": "エージェント" },
+    { "id": "genai-vol6-021", "booth": "E-2", "name": "サンプル出展U", "genre": "ハードウェア" },
+    { "id": "genai-vol6-022", "booth": "E-7", "name": "サンプル出展V(VR/AR体験コーナーを想定した長めのダミー展示名テスト用サンプルです)", "genre": "VR/AR" },
+    { "id": "genai-vol6-023", "booth": "E-13", "name": "サンプル出展W", "genre": "AIキャラクター" },
+    { "id": "genai-vol6-024", "booth": "E-20", "name": "サンプル出展X", "genre": "音声AI" }
+  ]
+}
