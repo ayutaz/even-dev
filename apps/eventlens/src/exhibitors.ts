@@ -96,16 +96,21 @@ export function compareBooth(a: string, b: string): number {
   const left = parseBooth(a)
   const right = parseBooth(b)
 
+  const leftHasNumber = !Number.isNaN(left.numeric)
+  const rightHasNumber = !Number.isNaN(right.numeric)
+
+  // Digit-presence check first: numbered booths come before non-numbered ones
+  if (leftHasNumber && !rightHasNumber) return -1
+  if (!leftHasNumber && rightHasNumber) return 1
+
+  // Both have numbers or both don't - compare prefixes
   if (left.prefix !== right.prefix) {
     return left.prefix < right.prefix ? -1 : 1
   }
 
-  const leftHasNumber = !Number.isNaN(left.numeric)
-  const rightHasNumber = !Number.isNaN(right.numeric)
-
+  // Prefixes match
   if (!leftHasNumber && !rightHasNumber) return left.rest.localeCompare(right.rest)
-  if (!leftHasNumber) return 1
-  if (!rightHasNumber) return -1
+  // Both have numbers (we already know they have the same prefix)
   if (left.numeric !== right.numeric) return left.numeric - right.numeric
 
   return left.rest.localeCompare(right.rest)

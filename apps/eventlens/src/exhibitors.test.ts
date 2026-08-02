@@ -104,6 +104,20 @@ describe('compareBooth', () => {
   it('数字を含まないブース名は数字を含むものより後ろに置く', () => {
     expect(compareBooth('特設', 'A-1')).toBeGreaterThan(0)
   })
+
+  it('接頭辞が異なっても数字有無が優先される（AA vs Z-1）', () => {
+    expect(compareBooth('AA', 'Z-1')).toBeGreaterThan(0)
+    expect(compareBooth('Z-1', 'AA')).toBeLessThan(0)
+  })
+
+  it('空文字は数字を含むものより後ろに置く', () => {
+    expect(compareBooth('', 'A-1')).toBeGreaterThan(0)
+  })
+
+  it('数字を含まないラベル同士は接頭辞で比較する', () => {
+    const result = compareBooth('特設', 'ラウンジ')
+    expect(result).toBeGreaterThan(0)
+  })
 })
 
 describe('sortExhibitorsByBooth', () => {
